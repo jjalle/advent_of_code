@@ -356,7 +356,7 @@ def sol2(input_file: Path) -> List[int]:
     print(f"Result: {height}")
 
 def test_1_test():
-    input_file = Path('2022/17/test_input.txt')
+    input_file = Path('2022/17/input_test.txt')
     result = sol1(input_file)
     print(result)
 
@@ -366,7 +366,7 @@ def test_1():
     print(result)
 
 def test_2_test():
-    input_file = Path('2022/17/test_input.txt')
+    input_file = Path('2022/17/input_test.txt')
     result = sol2(input_file)
     print(result)
 

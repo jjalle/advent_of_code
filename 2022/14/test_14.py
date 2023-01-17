@@ -87,6 +87,21 @@ def get_map(paths: List[List[Tuple[int, int]]]):
                 map[x][y] = Tile.AIR
     return map, xmin, xmax, ymin, ymax
 
+def get_limist(paths: List[List[Tuple[int, int]]]) -> Tuple[int,int,int,int]:
+    xmin = float('inf')
+    xmax = 0
+    ymin = 0
+    ymax = 0
+    for path in paths:
+        for x,y in path:
+            if x < xmin:
+                xmin = x
+            if x > xmax:
+                xmax = x
+            if y > ymax:
+                ymax = y
+    return (xmin, xmax, ymin, ymax)
+
 def sol1(input_file: Path) -> List[int]:
     paths = list()
     with input_file.open('r') as inf:
@@ -133,50 +148,68 @@ def sol2(input_file: Path) -> List[int]:
             line = line.strip()
             path = process_line(line)
             paths.append(path)
-    map, xmin, xmax, ymin, ymax = get_map(paths)
-    yfloor = ymax + 2
-    for x in range(xmin-yfloor, xmin):
-        map[x] = dict()
-        for y in range(0, yfloor):
-            map[x][y] = Tile.AIR
-    for x in range(xmax, xmax + yfloor + 1):
-        map[x] = dict()
-        for y in range(0, yfloor):
-            map[x][y] = Tile.AIR
-    xmin -= yfloor
-    xmax += yfloor
-    for x in range(xmin, xmax + 1):
-        map[x][yfloor-1] = Tile.AIR
-        map[x][yfloor] = Tile.ROCK
-    ymax = yfloor
+    map = list()
+    for x in range(185):
+        row = list()
+        for y in range(1000):
+            row.append(Tile.AIR)
+        map.append(row)
+    # Assign source
+    map[0][500] = Tile.SOURCE
+    # Assign walls
+    xmax = 0
+    for path in paths:
+        for i in range(0, len(path) - 1):
+            y1, x1 = path[i]
+            y2, x2 = path[i+1]
+            if x2 >= x1:
+                xrange = range(x1, x2 + 1)
+            else:
+                xrange = range(x2, x1 + 1)
+            if y2 >= y1:
+                yrange = range(y1, y2 + 1)
+            else:
+                yrange = range(y2, y1 + 1)
+            for x in xrange:
+                for y in yrange:
+                    map[x][y] = Tile.ROCK
+                    if x > xmax:
+                        xmax = x
+    # Assign floor
+    xfloor = xmax + 2
+    for y in range(1000):
+        map[xfloor][y] = Tile.ROCK
+    xmax = xfloor
     # Drop sand
     count = 0
     source = False
     while not source:
         count += 1
         falling = True
-        x = 500
-        y = 0
+        x = 0
+        y = 500
         while falling:
             falling = False
-            for nx,ny in [(x,y+1),(x-1,y+1),(x+1,y+1)]:
+            for nx,ny in [(x+1,y),(x+1,y-1),(x+1,y+1)]:
                 #draw_map(xmin, xmax, ymin, ymax, x, y, map)
-                if ny >= yfloor:
+                if nx >= xmax:
                     break
                 else:
                     tile = map[nx][ny]
                     if tile == Tile.AIR:
                         falling = True
-                        map[x][y] = Tile.AIR
-                        map[nx][ny] = Tile.SAND
                         x = nx
                         y = ny
                         break
-            if x == 500 and y == 0:
-                source = True
-                print(f"Result {count-1}")
-                break
-    print(f"Result: {count-1}")
+            if not falling:
+                map[x][y] = Tile.SAND
+                #if x == 500 and y == 0:
+                if map[1][499] == map[1][500] == map[1][501] == Tile.SAND:
+                    #draw_map(0, 184, 0, 1000, 500, 0, map)
+                    source = True
+                    print(f"Result {count+1}")
+                    break
+    print(f"Result: {count+1}")
 
 def test_1_test():
     input_file = Path('2022/14/test_input.txt')
